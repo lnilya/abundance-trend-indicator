@@ -11,6 +11,7 @@ from GlobalParams import GlobalParams
 from src.__libs import mputil
 from src.__libs.osutil import getAllFiles
 from src.__libs.plotutil.PlotlyGraph import PlotlyGraph
+from src.__libs.pyutil import termutil
 from src.classes.Serializable import Serializable
 from src.classes.Enums import PredictiveVariableSet
 import paths as PATHS
@@ -62,15 +63,9 @@ def _readGeoVariables(vars:VariableList, nanvalue = (0,0)):
     for path,name in allVars.items():
         with rasterio.open(path) as src:
             rawData = src.read(1)
-            if name in GlobalParams.predictorVariableMappings.keys():
-                mapping = GlobalParams.predictorVariableMappings[name]
-                mapFunc = np.vectorize(lambda x: mapping.get(x, np.nan))
-                rawData = mapFunc(rawData)
-            else:
-                #replace with nan values
-                if isinstance(nanvalue, tuple):
-                    nanvalue = rawData[nanvalue[0],nanvalue[1]]
-                rawData[rawData == nanvalue] = np.nan
+            if isinstance(nanvalue, tuple):
+                nanvalue = rawData[nanvalue[0],nanvalue[1]]
+            rawData[rawData == nanvalue] = np.nan
 
             shape = rawData.shape
             res[name] = rawData.reshape(-1)
@@ -78,22 +73,26 @@ def _readGeoVariables(vars:VariableList, nanvalue = (0,0)):
     return res,shape
 
 
-def _extractDataSingleYear(year, requiredVars:VariableList, geoVars):
+def _extractDataSingleYear(overwrite, year, requiredVars:VariableList, geoVars):
+    sfid = StackedDataFileID(year, requiredVars)
+    if sfid.fileExists() and not overwrite:
+        print(f"Skipping year {year}")
+        return
+
     Serializable.OMIT_WARNINGS = True #Prevent pickle warnings
     climVars, shape = _readClimateVariables(requiredVars, year)
     climVars.update(geoVars)
     assert len(climVars) == len(requiredVars.list), f"Missing variables for year {year}"
-    sfid = StackedDataFileID(year, requiredVars)
     sd = StackedData(sfid, climVars, requiredVars, None, shape)
     sd.saveToDisc()
     Serializable.OMIT_WARNINGS = False
 
-def extractData(yearMin, yearMax, requiredVars:VariableList):
+def extractData(_overwrite:bool, yearMin, yearMax, requiredVars:VariableList):
     """Compute the bioclim variables across entire new zealand. e.g. all pixels in hotrunz"""
-
+    termutil.chapPrint("Extracting Environmental Data for Predictions")
     # 1. Load Elevation and Latitude data
     geoVars,shape = _readGeoVariables(requiredVars)
-    mputil.runParallel(_extractDataSingleYear, [(year, requiredVars, geoVars) for year in range(yearMin, yearMax)], debug=False)
+    mputil.runParallel(_extractDataSingleYear, [(_overwrite,year, requiredVars, geoVars) for year in range(yearMin, yearMax)], debug=False)
 
 if __name__ == '__main__':
     extractData(GlobalParams.minYear, GlobalParams.maxYear, PredictiveVariableSet.Full)

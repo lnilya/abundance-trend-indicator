@@ -17,7 +17,7 @@ FileIDSubclass = TypeVar('FileIDSubclass', bound="FileID")
 
 class Serializable:
 
-    OMIT_WARNINGS:bool = False
+    OMIT_WARNINGS:bool = True
 
     """A class that can be serialized and deserialized.
     The idea is to always use dict for storing/pickling data so that there are no

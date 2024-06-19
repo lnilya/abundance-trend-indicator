@@ -65,6 +65,11 @@ class StackedData(FlatMapData):
     def displayStackedDataBatch(year: int, vars: VariableList, normalized: bool = True):
         StackedData.readFromDisc(year, vars).plotData(normalized)
 
+    def toDict(self) -> dict:
+        sd = super().toDict()
+        sd["varList"] = self._varList.toDict()
+        return sd
+
     @staticmethod
     def fromDict(dict: dict, type:any, fileID: StackedDataFileID) -> "StackedData":
         return StackedData(fileID,

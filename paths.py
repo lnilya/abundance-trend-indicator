@@ -24,35 +24,10 @@ class Cache:
     def toPickle(filename:str)->str:
         return REPOFOLDER + '_plots/%s.pickle'%filename
 class Raw:
-    # Raw occurrence data
-    # _subfolder = "/NVS Data Aug 23"
-    _subfolder = ""
-
-    RecceData: str = DATAFOLDER + "_v2/_RawData" + _subfolder + "/Recce.csv"
-    SaplingData = DATAFOLDER + '_v2/_RawData' + _subfolder + '/Saplings.csv'
-    StemData = DATAFOLDER + '_v2/_RawData' + _subfolder + '/Stems.csv'
-    SeedlingData = DATAFOLDER + '_v2/_RawData' + _subfolder + '/Seedlings.csv'
-
-    # Raw Plot Info data
-    SiteDescription = DATAFOLDER + '_v2/_RawData' + _subfolder + '/_SiteDescription_WithTP.csv'
-    OrongoCoordinates = DATAFOLDER + '_v2/_RawData' + _subfolder + '/ORONGORONGO Plot Coordinates.csv'
-
-    # Species Info
-    SpeciesNames = DATAFOLDER + "_v2/_RawData/CurrentNVSNames_Raw.csv"
-
-    # 2 - GIS DATA FOR PLOT INFO
-    GisEcosystems = GISFOLDER + 'lris BasicEcosystems/'
-    GisSoilLayers = GISFOLDER + 'Iris-SoilLayers/'
-    GisNZEnvDSFolder = GISFOLDER + 'NZEnvDS_v1-1/'
-    GisHotRunzFolder = GISFOLDER + 'HotRUNZ/'
-    GisGRazingFolder = GISFOLDER + 'Grazing/'
 
     Predictors = f"_data/_input/_predictor_variables/"
 
 
-
-class GISExport:
-    TrainingDataSubset = GISFOLDER + "EftiExport/TrainingDataSubset.csv"
 
 class Occ:
     # Merged full dataset
@@ -64,7 +39,7 @@ class PlotInfo:
 
     # Full plot info
     NoProps: str = "_data/_input/PlotInfo.csv"
-    WithGeoProps: str = "_data/_input/PlotInfo_WithProps.csv"
+    WithGeoProps: str = "_data/_trainingdata/PlotInfo_WithProps.csv"
 
 
 class SpeciesInfo:
@@ -72,43 +47,36 @@ class SpeciesInfo:
 
 
 class Bioclim:
-    AtPlotsByYear = '_data/_input/ClimateByYear.csv'
-    AtPlotsByYearLinearAppx = '_data/_input/ClimateByYear_LinAppx.csv'
+    AtPlotsByYear = '_data/_trainingdata/ClimateByYear.csv'
+    AtPlotsByYearLinearAppx = '_data/_trainingdata/ClimateByYear_LinAppx.csv'
 
 
 class Shifts:
 
-    allPlotsByMethod =f'_data/_input/Migrations.csv'
+    allPlotsByMethod =f'_data/_trainingdata/Migrations.csv'
     @staticmethod
     def allPlotsCombined(by: Union[str, ClassCombinationMethod]) -> str:
         if isinstance(by, ClassCombinationMethod):
             by = by.value
 
-        return f'_data/_input/TrainingData_{by}.csv'
+        return f'_data/_trainingdata/TrainingData_{by}.csv'
 
 
 class Noise:
 
-    possibleNoiseNetwork = DATAFOLDER + '_v3/_Analysis/NoiseNetwork.csv'
-
-    @staticmethod
-    def noisePerformance(comb:ClassCombinationMethod, vars:VariableList, problem:ClassificationProblem, balance:NoiseRemovalBalance)->str:
-        return  DATAFOLDER + '_v3/_Models/NoisePerformance_%s_%s_%s%s.csv'%(comb.value,vars.name,problem.value,f"_{balance.value}" if balance != NoiseRemovalBalance.Combined else "")
     @staticmethod
     def noiseLabels(comb:ClassCombinationMethod, vars:VariableList)->str:
-        return '_data/NoiseScores_%s_%s.csv'%(comb.value,vars.name)
+        return '_data/_trainingdata/NoiseScores_%s_%s.csv'%(comb.value,vars.name)
 
-class VarSelection:
-    varSelectionBySpecies = DATAFOLDER + '_v3/_Analysis/1_VariableSelection_bySpecies_mrmr_scores_%s.csv'
-    varSelectionTotal = DATAFOLDER + '_v3/_Analysis/1_VariableSelection_Total_mrmr_scores_%s.csv'
 
 class Results:
     stackedFeaturesFolder = '_data/_predictions/_environment/'
     similaritiesFolder = '_data/_predictions/_similarity/'
 
 
-    predictionsMeanFolder = DATAFOLDER + '_v3/_Analysis/MeanPredictions/'
-    predictionsFolder = DATAFOLDER + '_v3/_Analysis/YearPredictions/'
+    predictionsMeanFolder = '_data/_predictions/_ati/'
+    predictionsFolder = '_data/_predictions/_ati_yearly/'
+
     predictionImgsFolder = DATAFOLDER + '_v3/_Analysis/PredictionImgs/'
     permutationImportanceFolder = DATAFOLDER + '_v3/_Analysis/PermutationImportance/'
     permutationImportance = DATAFOLDER + '_v3/_Analysis/PermutationImportance/PermutationImportance.csv'

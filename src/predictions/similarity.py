@@ -9,6 +9,7 @@ from tqdm import tqdm
 import paths as PATHS
 from GlobalParams import GlobalParams
 from src.__libs import mputil
+from src.__libs.pyutil import termutil
 from src.classes.Enums import ClassCombinationMethod, ClassificationProblem, PredictiveVariableSet
 from src.classes.FileIDClasses import SimilarityDataFileID
 from src.classes.SimilarityData import SimilarityData
@@ -17,7 +18,24 @@ from src.classes.VariableList import VariableList
 from src.datautil import datautil
 
 
-def computeSimilarity(overwrite, dataset: ClassCombinationMethod, varset: VariableList = PredictiveVariableSet.Full):
+def _computeSingleSpecies(d,varset:VariableList,spGroup:pd.DataFrame):
+    X = d.getDataAs1DArray(None, varset)
+    ss = StandardScaler()
+    X = ss.fit_transform(X)
+
+    # Scale the training data as well
+    X_train = ss.transform(spGroup[varset].values)
+
+    # compute the distance
+    neigh = NearestNeighbors(n_neighbors=GlobalParams.similarity_k, metric=GlobalParams.similarity_metric)
+    neigh.fit(X_train)
+    # compute the distance
+
+    distances, indices = neigh.kneighbors(X)
+    return np.mean(distances, axis=1)
+
+def computeSimilarity(overwrite, dataset: ClassCombinationMethod, varset: VariableList = PredictiveVariableSet.Full, speciesSubset:list = None):
+    termutil.chapPrint("Computing Similarity of Environment to Training Data")
     # load training points
     trData = datautil.loadTrainingData(dataset, ClassificationProblem.IncDec, varset, False, True, silent=True)
 
@@ -34,35 +52,26 @@ def computeSimilarity(overwrite, dataset: ClassCombinationMethod, varset: Variab
     for yr in yearRange:
         data[yr] = StackedData.readFromDisc(yr, PredictiveVariableSet.Full)
 
-    occData = pd.read_csv(PATHS.Occ.Combined, usecols=["ParentPlotID", "Species"])
+    occData = pd.read_csv(PATHS.Occ.Combined, usecols=["PlotID", "Species"])
     occData, _ = datautil.getAllPlotInfo(False, ["mapX", "mapY"], occData)
 
     for species, spGroup in spg:
+        if speciesSubset is not None and species not in speciesSubset:
+            continue
         # compute the similarity between the training points and the data
         # using nearest neighbour distance
-        simid = SimilarityDataFileID(yearRange, GlobalParams.similarity_k, GlobalParams.similarity_metric, str(species), varset, dataset, ClassificationProblem.IncDec)
+        simid = SimilarityDataFileID(yearRange, GlobalParams.similarity_k, GlobalParams.similarity_metric, str(species), varset, ClassificationProblem.IncDec,dataset)
         if simid.fileExists() and not overwrite:
             print(f"Skipped {species}. Already exists.")
             continue
         allDistances = []
-        for yr in tqdm(yearRange):
+        args = []
+        for yr in yearRange:
+            args.append((data[yr],varset,spGroup))
 
-            d = data[yr]
-            X = d.getDataAs1DArray(None, varset)
-            ss = StandardScaler()
-            X = ss.fit_transform(X)
+        allDistances = mputil.runParallel(_computeSingleSpecies, args, poolSize=GlobalParams.parallelProcesses, progressMessage=f"{species}")
 
-            # Scale the training data as well
-            X_train = ss.transform(spGroup[varset].values)
-
-            # compute the distance
-            neigh = NearestNeighbors(n_neighbors=GlobalParams.similarity_k, metric=GlobalParams.similarity_metric)
-            neigh.fit(X_train)
-            # compute the distance
-            distances, indices = neigh.kneighbors(X)
-            allDistances.append(np.mean(distances,axis=1))
-
-        meanDistances = np.mean(allDistances, axis=0)
+        meanDistances = np.mean(allDistances, axis=0).reshape(-1,1)
 
         sd = SimilarityData(simid,meanDistances,data[yearRange[0]].nanmask,data[yearRange[0]].shape)
         sd.computeNormalization(occData)

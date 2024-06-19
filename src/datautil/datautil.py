@@ -156,7 +156,7 @@ def loadTrainingData(comb:ClassCombinationMethod, classificationProblem:Classifi
         data = data.merge(noise, on=["PlotID","Year0","Year1","Species"], how="left")
 
         #ensure there are no blanks
-        assert data.Noise.notna().all()
+        assert data.Noise.notna().all(), "Some datapoints have no Noise value. This should not happen."
 
 
         def _remNoiseMax(x):
@@ -225,7 +225,7 @@ def loadTrainingData(comb:ClassCombinationMethod, classificationProblem:Classifi
 
         ratio = 100 - 100 * len(uniqueX) / len(X)
         if ratio > 2 and not silent:
-            termutil.errorPrint(f"    Some data is duplicated for species {s}. If the rate is small, it is likely ok. {ratio:.2f}%")
+            termutil.errorPrint(f"    {ratio:.2f}% Duplicate entries in predictor variables for {s}. If the rate is small, it is likely by chance, but if large maybe some plots are too close to one another")
 
         plotKeys = spGroup.loc[:,["PlotID","Year0","Year1"]]
         #cast all to ints

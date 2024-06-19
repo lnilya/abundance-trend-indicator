@@ -33,7 +33,7 @@ class SimilarityData(FlatMapData):
             dataAsList = [data[k] for k in data.keys()]
             data = np.stack(dataAsList, axis=1)
 
-        if data.shape[1] != 1:
+        if len(data.shape) >= 2 and data.shape[1] != 1:
             data = np.mean(data, axis=1).reshape(-1,1)
 
         self._normalizationQuantile = _normQuantile
@@ -45,7 +45,7 @@ class SimilarityData(FlatMapData):
         ensure that the similarity surface includes all occurrences."""
 
         if occData is None:
-            occData = pd.read_csv(PATHS.Occ.Combined, usecols=["ParentPlotID", "Species"])
+            occData = pd.read_csv(PATHS.Occ.Combined, usecols=["PlotID", "Species"])
             occData, _ = datautil.getAllPlotInfo(False, ["mapX", "mapY"], occData)
 
         occData = occData.loc[occData.Species == self._fileID["Species"]]
@@ -120,10 +120,10 @@ class SimilarityData(FlatMapData):
         return occQ95,trQ95,f2
     def _loadOccData(self, subsample:int):
         trData = pd.read_csv(PATHS.Shifts.allPlotsCombined(self._fileID["ClassCombinationMethod"]),
-                           usecols=["Species", "Type", "ParentPlotID", "mapX", "mapY"])
+                           usecols=["Species", "Type", "PlotID", "mapX", "mapY"])
         trData = trData[trData.Species == self._fileID["Species"]]
 
-        occ = pd.read_csv(PATHS.Occ.Combined, usecols=["ParentPlotID", "Species"])
+        occ = pd.read_csv(PATHS.Occ.Combined, usecols=["PlotID", "Species"])
         occ = occ.loc[occ.Species == self._fileID["Species"]]
         occ = occ.drop_duplicates()  # we are only interested in plots
         occ, _ = datautil.getAllPlotInfo(False, ["mapX", "mapY"], occ)
@@ -166,8 +166,8 @@ class SimilarityData(FlatMapData):
 
         f = px.imshow(img, color_continuous_scale=px.colors.sequential.thermal)
 
-        f.add_scatter(x=occ["mapX"], y=occ["mapY"], mode="markers", marker=dict(size=4, color="lightgreen", symbol="cross"), hovertext=occ["ParentPlotID"])
-        f.add_scatter(x=trData["mapX"], y=trData["mapY"], mode="markers", marker=dict(size=3, color="red"), hovertext=trData["ParentPlotID"])
+        f.add_scatter(x=occ["mapX"], y=occ["mapY"], mode="markers", marker=dict(size=4, color="lightgreen", symbol="cross"), hovertext=occ["PlotID"])
+        f.add_scatter(x=trData["mapX"], y=trData["mapY"], mode="markers", marker=dict(size=3, color="red"), hovertext=trData["PlotID"])
         f.update_layout(title="Similarity Surface with %s"%self._fileID["Species"])
 
 
@@ -184,10 +184,10 @@ class SimilarityData(FlatMapData):
 
         if showOcc:
             f.add_scatter(x=occ["mapX"], y=occ["mapY"], mode="markers",
-                          marker=dict(size=4, color="orange", symbol="cross"), hovertext=occ["ParentPlotID"])
+                          marker=dict(size=4, color="orange", symbol="cross"), hovertext=occ["PlotID"])
         if showTrain:
             f.add_scatter(x=trData["mapX"], y=trData["mapY"], mode="markers", marker=dict(size=3, color="red"),
-                          hovertext=trData["ParentPlotID"])
+                          hovertext=trData["PlotID"])
         f.update_layout(title="Similarity Surface with %s" % self._fileID["Species"])
         return f
 

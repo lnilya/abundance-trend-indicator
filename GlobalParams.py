@@ -9,7 +9,7 @@ class GlobalParams:
     minYear = 1969
     # minYear = 1966
     yearRange = (minYear, maxYear)
-    parallelProcesses = 11
+    parallelProcesses = 8
     minObservationsTotal = 100 #A species must have at least this many observations to be included in the analysis
     minObservationsPerClass = 20 #Each of the three classes (Inc,Dec,Same) should have at least that many observations
 

@@ -58,7 +58,7 @@ def computeNoiseScores(overwrite:bool, _combination:ClassCombinationMethod,_vars
     _metrics = [GlobalParams.noise_metric]
 
     #check if the data is already computed
-    if os.path.exists(PATHS.Noise.noiseLabels(_combination, _vars)):
+    if os.path.exists(PATHS.Noise.noiseLabels(_combination, _vars)) and not overwrite:
         termutil.successPrint("Skipping noise score computation - file already exists")
         return None
 
@@ -71,7 +71,7 @@ def computeNoiseScores(overwrite:bool, _combination:ClassCombinationMethod,_vars
 
     curR = []
     for species,pnts in tqdm(sgr):
-        ids = pnts.loc[:,["ParentPlotID","Year0","Year1","Type"]]
+        ids = pnts.loc[:,["PlotID","Year0","Year1","Type"]]
         X = stds.fit_transform(pnts[_vars.list])
         y = pnts["Type"]
         le = LabelEncoder()
@@ -92,7 +92,7 @@ def computeNoiseScores(overwrite:bool, _combination:ClassCombinationMethod,_vars
                         noise,validNeighbours,samelabelNeighbours = _noiseEta(y[i],y[kind[i]],kdist[i],avgDist[k]*alpha)
                         curR += [list(ids.iloc[i]) + [species,k,alpha,noise,validNeighbours,samelabelNeighbours,m]]
 
-    res = pd.DataFrame(curR,columns=["ParentPlotID","Year0","Year1","Type","Species","k","alpha","Noise","Neighbours","SameLabelNeighbours","Metric"])
+    res = pd.DataFrame(curR,columns=["PlotID","Year0","Year1","Type","Species","k","alpha","Noise","Neighbours","SameLabelNeighbours","Metric"])
 
 
     dataCols = ["Noise","Neighbours","SameLabelNeighbours"]

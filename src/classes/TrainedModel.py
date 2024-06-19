@@ -8,6 +8,7 @@ from GlobalParams import GlobalParams
 from src.classes.ClassifierDataSet import ClassifierDataSet
 from src.classes.Enums import ModelType, ClassificationProblem, ClassCombinationMethod, NoiseRemovalBalance
 from src.classes.FileIDClasses import ModelFileID
+from src.classes.PretrainedVotingClassifier import PretrainedVotingClassifier
 from src.classes.Serializable import Serializable
 import paths as PATHS
 import os
@@ -110,8 +111,9 @@ class TrainedModel(Serializable):
         """Predicts the data and returns it as True/False. with true being Increase and False being Decrease in abundance.
         If this is an ensemble model, it will return the probability of increase in abundance. """
 
-        if "Ensemble" in self.modelID.value and treatEnsembleClassifiersAsProbabilistic:
+        if isinstance(self.trainedClassifier, PretrainedVotingClassifier):
             return self.predictEnsemble(data)
+
         if not data.hasFeatures(self.trainingData.vars.list):
             raise ValueError("Stacked data does not contain all variables needed by this classifier")
 
