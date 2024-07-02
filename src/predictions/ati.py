@@ -9,7 +9,7 @@ from src.__libs import mputil
 from src.__libs.pyutil import termutil
 from src.classes import VariableList
 from src.classes.Enums import ModelType, ClassificationProblem, PredictiveVariableSet, NoiseRemovalBalance, \
-    ClassCombinationMethod
+    Dataset
 from src.classes.ModelMeanPrediction import ModelMeanPrediction
 from src.classes.ModelPrediction import ModelPrediction
 from src.classes.Serializable import Serializable
@@ -26,15 +26,15 @@ def _pred(m:TrainedModel,ensembleHandling:Literal["hard","soft"], data):
 
 
 def computeATIPredictions(overwrite: bool, models: list[ModelType], varsets: list[VariableList],
-                            noiseRed: list[float],
-                            datasets:list[ClassCombinationMethod],
-                            output:Literal["mean","single","both"] = "mean",
-                            ensembleHandling:Literal["hard","soft"] = "soft",
-                            yearRange = None,
-                            speciesSubset = None):
+                          noiseRed: list[float],
+                          datasets:list[Dataset],
+                          output:Literal["mean","single","both"] = "mean",
+                          ensembleHandling:Literal["hard","soft"] = "soft",
+                          yearRange = None,
+                          speciesSubset = None):
     """
-    Compute model predictions by gather all combinations of parameters and then running the entire prediction in parallel
-    :param overwrite: Will overwrite existing files
+    Compute model predictions by gather all combinations of parameters and then running the entire prediction in parallel.
+    :param overwrite: Will overwrite existing files, if false will skip the prediction for existing files
     :param models: List of models to generate predictions for
     :param varsets: List of variable sets to generate predictions for
     :param noiseRed: List of noise reduction values to generate predictions for
@@ -64,7 +64,7 @@ def computeATIPredictions(overwrite: bool, models: list[ModelType], varsets: lis
     for nr,m,var,dataset in product(noiseRed, models, varsets, datasets):
         termutil.chapPrint(f"[{m.value}] Predicting averages @ Noise {nr} ")
         print("")
-        allModelFiles,_ = ModelFileID(NoiseRemovalBalance=NoiseRemovalBalance.Equal, NoiseReduction=nr, Classifier=m, Variables=var, ClassCombinationMethod=dataset, ClassificationProblem=ClassificationProblem.IncDec).getAllFiles()
+        allModelFiles,_ = ModelFileID(NoiseRemovalBalance=NoiseRemovalBalance.Equal, NoiseReduction=nr, Classifier=m, Variables=var, Dataset=dataset, ClassificationProblem=ClassificationProblem.IncDec).getAllFiles()
         validModels:List[TrainedModel] = []
         #Check which models exist and need to be processed
         for mf in allModelFiles:
@@ -103,4 +103,4 @@ def computeATIPredictions(overwrite: bool, models: list[ModelType], varsets: lis
 
 
 if __name__ == "__main__":
-    computeModelPredictions(True, [ModelType.GLM], [PredictiveVariableSet.Full], [0.05], [NoiseRemovalBalance.Equal], ClassCombinationMethod.AdultsWithSameSplitByDBH, "single", "hard")
+    computeModelPredictions(True, [ModelType.GLM], [PredictiveVariableSet.Full], [0.05], [NoiseRemovalBalance.Equal], Dataset.AdultsWithSameSplitByDBH, "single", "hard")

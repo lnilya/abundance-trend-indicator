@@ -11,7 +11,7 @@ import src.__libs.pyutil as pyutil
 from GlobalParams import GlobalParams
 from src.__libs import mputil
 from src.__libs.pyutil import termutil
-from src.classes.Enums import ClassCombinationMethod, PredictiveVariableSet, ClassificationProblem
+from src.classes.Enums import Dataset, PredictiveVariableSet, ClassificationProblem
 from src.classes.VariableList import VariableList
 from src.datautil import datautil
 import os
@@ -49,8 +49,14 @@ def _noiseEta(pointLbl, lbls:np.ndarray, dists:np.ndarray, maxDist:float = 5):
 
     return np.sum(lbls * dists), np.count_nonzero(dists) ,np.count_nonzero((1-lbls) * dists)
 
-def computeNoiseScores(overwrite:bool, _combination:ClassCombinationMethod,_vars:VariableList):
-    """analyze labels by kNN and try to filter out noise"""
+def computeNoiseScores(overwrite:bool, dataset:Dataset, varset:VariableList):
+    """
+    Compute the noise scores for the given combination and variable set. The noise score is a measure of how likely a point/site in the training set is to be noise based on its label (increase/decrease in abundance) and the distance to its k nearest neighbours.
+    :param overwrite: If true will overwrite existing files
+    :param dataset: The dataset to use
+    :param varset: The variable set to use
+    :return: None, results stored in a CSV file
+    """
 
     """ALGORITHM PARAMS"""
     _k = [GlobalParams.noise_k]
@@ -58,11 +64,11 @@ def computeNoiseScores(overwrite:bool, _combination:ClassCombinationMethod,_vars
     _metrics = [GlobalParams.noise_metric]
 
     #check if the data is already computed
-    if os.path.exists(PATHS.Noise.noiseLabels(_combination, _vars)) and not overwrite:
+    if os.path.exists(PATHS.Noise.noiseLabels(dataset, varset)) and not overwrite:
         termutil.successPrint("Skipping noise score computation - file already exists")
         return None
 
-    data = datautil.loadTrainingData(_combination,ClassificationProblem.IncDec,_vars,False,True,None)
+    data = datautil.loadTrainingData(dataset, ClassificationProblem.IncDec, varset, False, True, None)
 
     sgr = data.groupby("Species")
 
@@ -72,7 +78,7 @@ def computeNoiseScores(overwrite:bool, _combination:ClassCombinationMethod,_vars
     curR = []
     for species,pnts in tqdm(sgr):
         ids = pnts.loc[:,["PlotID","Year0","Year1","Type"]]
-        X = stds.fit_transform(pnts[_vars.list])
+        X = stds.fit_transform(pnts[varset.list])
         y = pnts["Type"]
         le = LabelEncoder()
         y = le.fit_transform(y)
@@ -100,13 +106,13 @@ def computeNoiseScores(overwrite:bool, _combination:ClassCombinationMethod,_vars
 
     assert len(res) == len(res.drop_duplicates(subset=idCols,keep="last"))
 
-    pyutil.writePandasToCSV(res,PATHS.Noise.noiseLabels(_combination,_vars),"Noise Labels", index=False, float_format=GlobalParams.floatFormat)
+    pyutil.writePandasToCSV(res, PATHS.Noise.noiseLabels(dataset, varset), "Noise Labels", index=False, float_format=GlobalParams.floatFormat)
 
 
 
 if __name__ == '__main__':
     _noiseEtaTest()
 
-    args = list(product( [ClassCombinationMethod.AdultsOnly], [PredictiveVariableSet.PC7]))
+    args = list(product([Dataset.AdultsOnly], [PredictiveVariableSet.PC7]))
     mputil.runParallel(computeNoiseScores,args,len(args),debug=False)
 

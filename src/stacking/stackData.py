@@ -87,12 +87,20 @@ def _extractDataSingleYear(overwrite, year, requiredVars:VariableList, geoVars):
     sd.saveToDisc()
     Serializable.OMIT_WARNINGS = False
 
-def extractData(_overwrite:bool, yearMin, yearMax, requiredVars:VariableList):
-    """Compute the bioclim variables across entire new zealand. e.g. all pixels in hotrunz"""
+def extractPredictionData(_overwrite:bool, yearMin, yearMax, variableSet:VariableList):
+    """
+    Extracts the environmental data for the prediction years from all layers (i.e. variables).
+    This is done by loading the climate and geo variables for each year and storing them in a StackedData object.
+    :param _overwrite: If true will overwrite existing files (else will skip this function if the file already exists)
+    :param yearMin: Year to start the extraction from
+    :param yearMax: Year to end the extraction at
+    :param variableSet: The variables to extract
+    :return: None, Results stored in StackedData objects on disk
+    """
     termutil.chapPrint("Extracting Environmental Data for Predictions")
     # 1. Load Elevation and Latitude data
-    geoVars,shape = _readGeoVariables(requiredVars)
-    mputil.runParallel(_extractDataSingleYear, [(_overwrite,year, requiredVars, geoVars) for year in range(yearMin, yearMax)], debug=False)
+    geoVars,shape = _readGeoVariables(variableSet)
+    mputil.runParallel(_extractDataSingleYear, [(_overwrite, year, variableSet, geoVars) for year in range(yearMin, yearMax)], debug=False)
 
 if __name__ == '__main__':
-    extractData(GlobalParams.minYear, GlobalParams.maxYear, PredictiveVariableSet.Full)
+    extractPredictionData(GlobalParams.minYear, GlobalParams.maxYear, PredictiveVariableSet.Full)

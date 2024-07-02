@@ -9,7 +9,7 @@ import src.training.classifierDefinitions as defs
 from GlobalParams import GlobalParams
 from src.__libs.pyutil import termutil
 from src.classes.ClassifierDataSet import ClassifierDataSet
-from src.classes.Enums import ClassificationProblem, PredictiveVariableSet, ModelType, ClassCombinationMethod, \
+from src.classes.Enums import ClassificationProblem, PredictiveVariableSet, ModelType, Dataset, \
     NoiseRemovalBalance
 from src.classes.PretrainedVotingClassifier import PretrainedVotingClassifier
 from src.classes.TrainedModel import TrainedModel
@@ -33,9 +33,21 @@ def _printSingleResult(testScores,trainScores,m:TrainedModel, fullTrainData:Clas
 def trainClassifiers(overwrite:bool = True,
                      _models = (ModelType.GLM, ModelType.SVM, ModelType.RF),
                      _varsets = (PredictiveVariableSet.PC7, PredictiveVariableSet.Full, PredictiveVariableSet.MinCorrelated),
-                     _datasets = (ClassCombinationMethod.AdultsWithSameSplitByDBH,),
+                     _datasets = (Dataset.AdultsWithSameSplitByDBH,),
                      _noiseReduction = (0, 0.025, 0.05, 0.075, 0.1, 0.125, 0.15, 0.175),
                      speciesSubset:list[str] = None, saveModelTrainingData = False):
+
+    """
+    Trains classifiers for all species in the dataset. The classifiers are trained on the training data and the best hyperparameters are determined using a grid search.
+    :param overwrite: If true, will overwrite existing models. If false, will skip the training of models that already exist.
+    :param _models: The models to use for training
+    :param _varsets: The varable sets to use for training
+    :param _datasets: The datasets to use for training (e.g. training data)
+    :param _noiseReduction: Values of noise reduction to train on.
+    :param speciesSubset: If not None, only train models for the species in this list
+    :param saveModelTrainingData: If true will store the training data inside the model file, otherwise will only store the model itself.
+    :return: None, results stored in TrainedModel objects on disk
+    """
 
     #create output folder
     if not os.path.exists(PATHS.TrainedModels.ModelFolder):
@@ -56,8 +68,6 @@ def trainClassifiers(overwrite:bool = True,
 
         if speciesSubset is not None:
             dt = {k:v for k,v in dt.items() if k in speciesSubset}
-
-        _maxNameLen = max([len(s) for s in dt.keys()])
 
         numSpecies = len(dt.keys())
 
@@ -122,5 +132,5 @@ def _trainSingleModel(cdf:ClassifierDataSet, species:str, classifier:ModelType, 
 
 
 if __name__ == '__main__':
-    trainClassifiers(True, [ModelType.GLM], [PredictiveVariableSet.Full], [NoiseRemovalBalance.Equal], [ClassCombinationMethod.AdultsWithSameSplitByDBH], saveModelTrainingData=False)
+    trainClassifiers(True, [ModelType.GLM], [PredictiveVariableSet.Full], [NoiseRemovalBalance.Equal], [Dataset.AdultsWithSameSplitByDBH], saveModelTrainingData=False)
     pass

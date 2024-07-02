@@ -65,7 +65,7 @@ class ModelType(Enum):
             return ModelType(self.value + "Ensemble")
         return self
 
-class ClassCombinationMethod(Enum):
+class Dataset(Enum):
     """We get an inc/dec in seedlings/saplings/stems or cover. These can be combined differently.
     For example we might only be interested in the increase/decrease of stems or we can think of a combined
     method that needs to have stems and seedlings or saplings increase."""

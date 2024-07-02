@@ -10,7 +10,7 @@ import paths as PATHS
 from GlobalParams import GlobalParams
 from src.__libs import mputil
 from src.__libs.pyutil import termutil
-from src.classes.Enums import ClassCombinationMethod, ClassificationProblem, PredictiveVariableSet
+from src.classes.Enums import Dataset, ClassificationProblem, PredictiveVariableSet
 from src.classes.FileIDClasses import SimilarityDataFileID
 from src.classes.SimilarityData import SimilarityData
 from src.classes.StackedData import StackedData
@@ -34,7 +34,17 @@ def _computeSingleSpecies(d,varset:VariableList,spGroup:pd.DataFrame):
     distances, indices = neigh.kneighbors(X)
     return np.mean(distances, axis=1)
 
-def computeSimilarity(overwrite, dataset: ClassCombinationMethod, varset: VariableList = PredictiveVariableSet.Full, speciesSubset:list = None):
+def computeSimilarity(overwrite, dataset: Dataset, varset: VariableList = PredictiveVariableSet.Full, speciesSubset:list = None):
+    """
+    Computes the similarity of the training data to the entire prediction area. This is done by computing the distance in the feature space between the pixel where prediction happens and the nearest training point.
+    The similarities across all years are then averaged to get a single similarity value for each pixel over the entre prediction period.
+    Results are saved to disk.
+    :param overwrite: If true will overwrite existing files (else will skip this function if the file already exists)
+    :param dataset: The dataset to use, this will determine the training data to use
+    :param varset: The variable set to use, this will determine the feature space to use
+    :param speciesSubset: If not None, only compute similarity for the species in this list
+    :return: None
+    """
     termutil.chapPrint("Computing Similarity of Environment to Training Data")
     # load training points
     trData = datautil.loadTrainingData(dataset, ClassificationProblem.IncDec, varset, False, True, silent=True)
@@ -81,7 +91,7 @@ def computeSimilarity(overwrite, dataset: ClassCombinationMethod, varset: Variab
 
 if __name__ == '__main__':
     # computeSimilarity(5,"manhattan",ClassCombinationMethod.AdultsWithSameSplitByDBH)
-    args = list(product([1,3,5],["l1","l2"],[ClassCombinationMethod.AdultsWithSameSplitByDBH]))
+    args = list(product([1,3,5], ["l1","l2"], [Dataset.AdultsWithSameSplitByDBH]))
     mputil.runParallel(computeSimilarity, args, len(args))
 
     pass

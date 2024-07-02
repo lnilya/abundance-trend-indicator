@@ -9,11 +9,9 @@ class GlobalParams:
     minYear = 1969
     # minYear = 1966
     yearRange = (minYear, maxYear)
-    parallelProcesses = 8
+    parallelProcesses = 8 #The number of parallel processes to use for the entire project. Should be ~the number of your CPUs
     minObservationsTotal = 100 #A species must have at least this many observations to be included in the analysis
     minObservationsPerClass = 20 #Each of the three classes (Inc,Dec,Same) should have at least that many observations
-
-    # See Progress note Apr 10th -> Year 1 measurements seem to focus on extreme events, they are total outliers. as do 35 year measurements
 
     maxYearDifference = 30 #The maximum number of years between observations. Will shrink dataset but too long observations do not have an influience anymore.
 
@@ -22,20 +20,20 @@ class GlobalParams:
 
     noise_k = 20 #Number of neighbours considered for noise analysis
     noise_alpha = 1.5 #Influence of distance for noise analysis
-    noise_metric = "l1"
+    noise_metric = "l1" #Metric for noise analysis, Generaly L1 is preferred for higher dimensions
 
     ## Similarity Surface
-    similarity_k = 3
-    similarity_metric = "l1"
+    similarity_k = 3 #Number of neighbours considered for similarity analysis
+    similarity_metric = "l1" #Metric for similarity analysis, Generaly L1 is preferred for higher dimensions
     similairty_cutoff = 1.2 #Similairty of 1 means the area includes 95% of all trainingdata. We can go slightly above to have more area at the expense of the possibility that the classifiers do not predict as well.
 
     ## Predictions
 
-    #Only consider models with AUC scores >= this threshold
-    predictionThreshold = 0.7
+
+    predictionThreshold = 0.7 #Only consider models with AUC scores >= this threshold
 
 
-    floatFormat = "%.4f" #will make all the CSVs much larger if adding more precision. But too little leads to duplicate datapoints.
+    floatFormat = "%.4f" #will make all the CSVs larger if adding more precision. But too little leads to duplicate datapoints sometimes.
 
 
     ## PLOTTING

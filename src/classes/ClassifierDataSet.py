@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 from GlobalParams import GlobalParams
-from src.classes.Enums import ClassificationProblem, ClassCombinationMethod
+from src.classes.Enums import ClassificationProblem, Dataset
 from src.classes.Serializable import Serializable
 from src.classes.VariableList import VariableList
 
@@ -18,7 +18,7 @@ class ClassifierDataSet(Serializable):
         if dict is None: return None
         return ClassifierDataSet(
             dict["_noiseRed"],
-            ClassCombinationMethod[dict["_combinationMethod"]],
+            Dataset[dict["_combinationMethod"]],
             ClassificationProblem[dict["_classificationProblem"]],
             VariableList.fromDict(dict["vars"]),
             dict["X"],
@@ -26,7 +26,7 @@ class ClassifierDataSet(Serializable):
             dict.get("plotIDs", None),
             dict.get("params", {}))
 
-    def __init__(self, noiseRed:float, comMethod: ClassCombinationMethod, classificationProblem: ClassificationProblem,
+    def __init__(self, noiseRed:float, comMethod: Dataset, classificationProblem: ClassificationProblem,
                  vars: VariableList, X: np.array, y: np.array, plotIDs: np.array = None, params: Dict = None):
         self._noiseRed = noiseRed
         self._combinationMethod = comMethod
@@ -136,7 +136,7 @@ class ClassifierDataSet(Serializable):
         return self._classificationProblem
 
     @property
-    def combinationMethod(self) -> ClassCombinationMethod:
+    def combinationMethod(self) -> Dataset:
         return self._combinationMethod
 
     @property

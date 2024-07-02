@@ -38,10 +38,11 @@ def _extractSafe(tifFilePath, coords, primaryIDs, colName, msgAdd:str = "", sile
 
 def extractClimateLayersLinAppx(overwrite:bool = False):
     """
-    Takes the climate values for each plot and creates a linear regression for each plot, the values of this linear regressions are stored
-    this eliminates the noise and focuses on the large-scale changes in climate.
-    This means that the output
-    :return:
+    Takes the climate values for each plot and creates a linear regression for each plot over the prediction period.
+    The values of this regression are used instead of the strongly fluctuating raw climate data.
+    This eliminates the noise and focuses on the long terms trends in changes in climate.
+    :param overwrite: If true will overwrite existing files (else will skip this function if the file already exists)
+    :return: None, results stored in a CSV file
     """
     if os.path.exists(PATHS.Bioclim.AtPlotsByYearLinearAppx) and not overwrite:
         termutil.successPrint("Skipped Climate Layer Linear Approximation. File exists.")
@@ -67,7 +68,12 @@ def extractClimateLayersLinAppx(overwrite:bool = False):
     pass
 
 def extractClimateLayers(overwrite:bool = False):
-
+    """
+    Extracts the climate layers for each plot and stores them in a CSV file. This is done by loading the geotiff layers and extracting the values for each plot.
+    The Climate layers are supposed to be provided for each year in the prediction period individually (e.g. temperature, precipitation etc).
+    :param overwrite: If true will overwrite existing files (else will skip this function if the file already exists)
+    :return: None
+    """
     if os.path.exists(PATHS.Bioclim.AtPlotsByYear) and not overwrite:
         termutil.successPrint("Skipped Climate Layers. File exists.")
         return
@@ -107,9 +113,10 @@ def extractClimateLayers(overwrite:bool = False):
 
 def extractGeoLayers(overwrite:bool = False):
     """
-    Loads the geotiff files provided by NZENVDS and reads their values at the locations of the measured plots.
-    The results are then added to the same file as the plot info.
-    :return: The dataframe with the results (but DF will also be saved to file)
+    Extracts the geotiff layers for each plot and stores them in a CSV file. This is done by loading the geotiff layers and extracting the values for each plot.
+    The Geo layers are supposed to remain the same throughout the entire prediction period (e.g. elevation, latitude etc).
+    :param overwrite: If true will overwrite existing files (else will skip this function if the file already exists)
+    :return: None, Results stored in a CSV file
     """
     if os.path.exists(PATHS.PlotInfo.WithGeoProps) and not overwrite:
         termutil.successPrint("Skipped Geo Layers. File exists.")

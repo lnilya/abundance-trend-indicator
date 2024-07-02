@@ -10,7 +10,7 @@ import paths as PATHS
 from GlobalParams import GlobalParams
 from src.__libs.pyutil import excludeFromDF, termutil
 from src.classes.ClassifierDataSet import ClassifierDataSet
-from src.classes.Enums import ClassCombinationMethod, ClassificationProblem, ClassLabels, NoiseRemovalBalance, ModelType
+from src.classes.Enums import Dataset, ClassificationProblem, ClassLabels, NoiseRemovalBalance, ModelType
 from src.classes.Types import SpeciesName
 from src.classes.VariableList import VariableList
 
@@ -23,7 +23,7 @@ def getOccurrenceData(addProperties:List = [], usecols = None):
     allRanges = allRanges.merge(plotInfo,on=["PlotID","ObservationID"],how="left")
     return allRanges,plotInfo
 
-def loadMigrationDF(staticProps:Optional[VariableList], comb:ClassCombinationMethod, climProps:VariableList = None, problem:ClassificationProblem = ClassificationProblem.IncDec):
+def loadMigrationDF(staticProps:Optional[VariableList], comb:Dataset, climProps:VariableList = None, problem:ClassificationProblem = ClassificationProblem.IncDec):
     """Loads the occurrence dataset and if needed merges it with the plotInfo to have one dataframe describing occurrence and plot information."""
 
     baseCols = ['PlotID', 'Species', 'Year0', 'Year1', 'Type', 'TypeNumeric']
@@ -96,7 +96,7 @@ def _excludeSpeciesWithTooFewEntries(data,silent = False)->pd.DataFrame:
     return data.loc[~data.Species.isin(excludedByClass)&~data.Species.isin(excludedByTotal)]
 
 
-def loadTrainingData(comb:ClassCombinationMethod, classificationProblem:ClassificationProblem, allVars:VariableList, addRandomColumn:bool = False, returnAsDF:bool = False, removeNoise:float = None, silent = False, nrb:NoiseRemovalBalance = NoiseRemovalBalance.Equal)->Union[pd.DataFrame,dict[SpeciesName, ClassifierDataSet]]:
+def loadTrainingData(comb:Dataset, classificationProblem:ClassificationProblem, allVars:VariableList, addRandomColumn:bool = False, returnAsDF:bool = False, removeNoise:float = None, silent = False, nrb:NoiseRemovalBalance = NoiseRemovalBalance.Equal)->Union[pd.DataFrame,dict[SpeciesName, ClassifierDataSet]]:
     """Loads the data in the correct format for different classification problems and variables. Ready to be used by classifiers
     :param classificationProblem: The classification problem to solve @see ClassificationType
     :param allVars: The variables to use @see VariableList

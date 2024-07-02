@@ -2,7 +2,7 @@ from typing import Union
 
 import numpy as np
 
-from src.classes.Enums import PredictiveVariableSet, ClassificationProblem, ClassCombinationMethod
+from src.classes.Enums import PredictiveVariableSet, ClassificationProblem, Dataset
 from src.classes.FileIDClasses import SimilarityDataFileID
 from src.classes.FlatMapData import FlatMapData
 import plotly.express as px
@@ -228,7 +228,7 @@ class SimilarityData(FlatMapData):
 
 if __name__ == "__main__":
     cp = ClassificationProblem.IncDec
-    ccv = ClassCombinationMethod.AdultsOnly
+    ccv = Dataset.AdultsOnly
     allVars = PredictiveVariableSet.Full
     sid = SimilarityDataFileID([1969,2019], 1,"l1","Myrsine australis", allVars, cp,
                                ccv)

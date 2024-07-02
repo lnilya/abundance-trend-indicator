@@ -84,13 +84,9 @@ def _getClassification(yg0, yg1, mainQuantityColName:str, classColName:str, *add
 
 def identifyRemeasuredPlots(overwrite:bool = False):
     """
-    Creates a dataframe of all remeasured plots with the following columns:
-    species,y0,y1,plotID,predictor variables (start,end,mid,dif) for each BIO1-19 and additional plotInfoCols
-    as well as the PCs for the BIO1-19 and plotInfoCols.
-    The idea is that this dataframe will contain all possible predictor variables and subsequent algorithms can
-    pick what they need from it.
-
-    :return:
+    Identifies plots that have been remeasured in the raw data and stores the results into a CSV file, this does not yet create the target labels, but is a precursor to the training data.
+    :param overwrite: If true will overwrite existing files
+    :return: None, results stored in a CSV file
     """
 
     if os.path.exists(PATHS.Shifts.allPlotsByMethod) and not overwrite:

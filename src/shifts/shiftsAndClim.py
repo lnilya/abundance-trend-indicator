@@ -7,25 +7,30 @@ import src.__libs.pyutil as pyutil
 from GlobalParams import GlobalParams
 from src.__libs import mlutil
 from src.__libs.pyutil import termutil
-from src.classes.Enums import ClassCombinationMethod, PredictiveVariableSet
+from src.classes.Enums import Dataset, PredictiveVariableSet
 from src.classes.VariableList import VariableList
 from src.datautil import getAllPlotInfo
 import os
 
-def createTrainingData(overwrite:bool, cc: ClassCombinationMethod):
-
-    if os.path.exists(PATHS.Shifts.allPlotsCombined(cc)) and not overwrite:
+def createTrainingData(overwrite:bool, dataset: Dataset):
+    """
+    Transforms the raw data into the training data by combining the target labels with the predictor variables.
+    :param overwrite: If true will overwrite existing files
+    :param dataset: The dataset to use
+    :return: None, results stored in a CSV file
+    """
+    if os.path.exists(PATHS.Shifts.allPlotsCombined(dataset)) and not overwrite:
         termutil.successPrint("Skipped Training Data Creation. File exists.")
         return
 
-    termutil.chapPrint(f"Building training data for {cc.name}")
+    termutil.chapPrint(f"Building training data for {dataset.name}")
 
 
     climatePlots = pd.read_csv(PATHS.Bioclim.AtPlotsByYearLinearAppx)
     shifts = pd.read_csv(PATHS.Shifts.allPlotsByMethod)
 
 
-    if cc == ClassCombinationMethod.AdultsWithSameSplitByDBH:
+    if dataset == Dataset.AdultsWithSameSplitByDBH:
         # Adult contains the class by number of individuals
         # AdultTA contains the class by DBH
         # Where Adult is S we use AdultTA
@@ -48,7 +53,7 @@ def createTrainingData(overwrite:bool, cc: ClassCombinationMethod):
         # Replace count values with dbh where Adult is S
         shifts.Type = np.where(shifts.Type == "S", shifts.AdultTA, shifts.Type)
 
-    elif cc == ClassCombinationMethod.AdultsOnly:
+    elif dataset == Dataset.AdultsOnly:
         # Average the shifts
         shifts.rename(columns={"Adult": "Type"}, inplace=True)
         # drop the nans
@@ -72,12 +77,12 @@ def createTrainingData(overwrite:bool, cc: ClassCombinationMethod):
 
         shifts.loc[gr.index, columns] = bioEnd
 
-    _addGeoVariablesToTrainingData(shifts, cc)
+    _addGeoVariablesToTrainingData(shifts, dataset)
 
     pass
 
 
-def _addGeoVariablesToTrainingData(data: pd.DataFrame = None, cc: ClassCombinationMethod = ClassCombinationMethod.AdultsWithSameSplitByDBH):
+def _addGeoVariablesToTrainingData(data: pd.DataFrame = None, cc: Dataset = Dataset.AdultsWithSameSplitByDBH):
 
     if data is None:
         data = pd.read_csv(PATHS.Shifts.allPlotsCombined(cc))
@@ -107,7 +112,7 @@ def _addGeoVariablesToTrainingData(data: pd.DataFrame = None, cc: ClassCombinati
 
 if __name__ == '__main__':
     # addGeoVariablesToDataframe(cc = ClassCombinationMethod.AdultsWithSameSplitByDBH)
-    createTrainingData(ClassCombinationMethod.AdultsWithSameSplitByDBH, True)
+    createTrainingData(Dataset.AdultsWithSameSplitByDBH, True)
     # condenseShiftsAndAddClim(ClassCombinationMethod.AdultsOnlyByArea,True)
     # condenseShiftsAndAddClim(ClassCombinationMethod.AdultsOnly,True)
     # condenseShiftsAndAddClim(ClassCombinationMethod.SaplingsOnly,False)

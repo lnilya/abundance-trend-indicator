@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 from GlobalParams import GlobalParams
 from src.classes.ClassifierDataSet import ClassifierDataSet
-from src.classes.Enums import ModelType, ClassificationProblem, ClassCombinationMethod, NoiseRemovalBalance
+from src.classes.Enums import ModelType, ClassificationProblem, Dataset, NoiseRemovalBalance
 from src.classes.FileIDClasses import ModelFileID
 from src.classes.PretrainedVotingClassifier import PretrainedVotingClassifier
 from src.classes.Serializable import Serializable
@@ -96,7 +96,7 @@ class TrainedModel(Serializable):
 
     def predictEnsemble(self,data:StackedData) -> np.ndarray:
         """Returns a prediction 0-1 for the increase in abundance. 0 being decrease and 1 being increase."""
-        assert "Ensemble" in self.modelID.value, "Only ensemble models can predict using predictEnsemble"
+        assert isinstance(self.trainedClassifier, PretrainedVotingClassifier), "Only ensemble models can predict using predictEnsemble"
         if not data.hasFeatures(self.trainingData.vars.list):
             raise ValueError("Stacked data does not contain all variables needed by this classifier")
 

@@ -9,7 +9,7 @@ import pandas as pd
 
 from src.__libs import osutil
 from src.classes import VariableList
-from src.classes.Enums import ModelType, ClassificationProblem, NoiseRemovalBalance, ClassCombinationMethod, \
+from src.classes.Enums import ModelType, ClassificationProblem, NoiseRemovalBalance, Dataset, \
     PredictiveVariableSet
 from src.classes.Serializable import Serializable
 import paths as PATHS
@@ -41,7 +41,7 @@ class FileID:
         Classifier=_enumToStr,
         Variables=_varlistToStr,
         ClassificationProblem=_enumToStr,
-        ClassCombinationMethod=_enumToStr,
+        Dataset=_enumToStr,
         NoiseReduction=_numToStr,
         NoiseRemovalBalance=_enumToStr,
         Years=_yearsToStr,
@@ -206,7 +206,7 @@ class FileID:
 
 
 class ModelMeanPredictionFileID(FileID):
-    ELEMENTS = [["Years"],["ClassCombinationMethod", "ClassificationProblem"], ["Classifier", "Variables"],
+    ELEMENTS = [["Years"],["Dataset", "ClassificationProblem"], ["Classifier", "Variables"],
                 ["Species", "NoiseReduction", "NoiseRemovalBalance"]]
 
     BASEPATH = PATHS.Results.predictionsMeanFolder
@@ -231,7 +231,7 @@ class ModelMeanPredictionFileID(FileID):
     def parseFromPath(path: str) -> "FileID":
         return FileID.parseFromPath(path, ModelMeanPredictionFileID.ELEMENTS)
 class ModelPredictionFileID(FileID):
-    ELEMENTS = [["Years"],["ClassCombinationMethod", "ClassificationProblem"], ["Classifier", "Variables"],
+    ELEMENTS = [["Years"],["Dataset", "ClassificationProblem"], ["Classifier", "Variables"],
                 ["Species", "NoiseReduction", "NoiseRemovalBalance"]]
 
     BASEPATH = PATHS.Results.predictionsFolder
@@ -274,19 +274,19 @@ class StackedDataFileID(FileID):
     def parseFromPath(path: str) -> "FileID":
         return FileID.parseFromPath(path, StackedDataFileID.ELEMENTS)
 class SimilarityDataFileID(FileID):
-    ELEMENTS = [["Years"],["ClassCombinationMethod","Variables","NumNeighbours","Metric"], ["Species", "ClassificationProblem"]]
+    ELEMENTS = [["Years"],["Dataset","Variables","NumNeighbours","Metric"], ["Species", "ClassificationProblem"]]
     BASEPATH = PATHS.Results.similaritiesFolder
     EXT = "pickle"
 
     def __init__(self, Years: list[int] = None, NumNeighbours:int = None, Metric:str = None, Species: str = None, Variables: VariableList = None,
-                 ClassificationProblem: ClassificationProblem = None, ClassCombinationMethod: ClassCombinationMethod = None):
+                 ClassificationProblem: ClassificationProblem = None, Dataset: Dataset = None):
         super().__init__(dict(
             Years= Years,
             Metric = Metric,
             NumNeighbours=NumNeighbours,
             Species=Species,
             ClassificationProblem=ClassificationProblem,
-            ClassCombinationMethod=ClassCombinationMethod,
+            Dataset=Dataset,
             Variables=Variables),
             SimilarityDataFileID.ELEMENTS,
             SimilarityDataFileID.EXT,
@@ -308,19 +308,19 @@ class SimilarityDataFileID(FileID):
         return FileID.parseFromPath(path, SimilarityDataFileID.ELEMENTS)
 
 class ModelFileID(FileID):
-    ELEMENTS = [["ClassCombinationMethod", "ClassificationProblem"], ["Classifier", "Variables"], ["Species", "NoiseReduction", "NoiseRemovalBalance"]]
+    ELEMENTS = [["Dataset", "ClassificationProblem"], ["Classifier", "Variables"], ["Species", "NoiseReduction", "NoiseRemovalBalance"]]
     BASEPATH = PATHS.TrainedModels.ModelFolder
     EXT = "pickle"
 
     def __init__(self, Species: str = None, Classifier: ModelType = None, Variables: VariableList = None,
-                 ClassificationProblem: ClassificationProblem = None, ClassCombinationMethod: ClassCombinationMethod = None,
+                 ClassificationProblem: ClassificationProblem = None, Dataset: Dataset = None,
                  NoiseReduction: float = None, NoiseRemovalBalance: NoiseRemovalBalance = None):
         super().__init__(dict(
             Species=Species,
             Classifier=Classifier,
             Variables=Variables,
             ClassificationProblem=ClassificationProblem,
-            ClassCombinationMethod=ClassCombinationMethod,
+            Dataset=Dataset,
             NoiseReduction=NoiseReduction,
             NoiseRemovalBalance=NoiseRemovalBalance),
             ModelFileID.ELEMENTS,
@@ -344,7 +344,7 @@ class ModelFileID(FileID):
 
 if __name__ == "__main__":
 
-    ELEMENTS = [["ClassCombinationMethod","ClassificationProblem"],["Classifier","Variables"],["Species","NoiseReduction", "NoiseRemovalBalance"]]
+    ELEMENTS = [["Dataset","ClassificationProblem"],["Classifier","Variables"],["Species","NoiseReduction", "NoiseRemovalBalance"]]
 
 
     FileID.moveAndRename(PATHS.TrainedModels.ModelFolder,ELEMENTS,ModelFileID.ELEMENTS,"pickle",{},
@@ -355,5 +355,5 @@ if __name__ == "__main__":
 
     # f = ModelFileID("species", ModelType.RF, PredictiveVariableSet.PC7,
     #                 ClassificationProblem.IncDec,
-    #                 ClassCombinationMethod.AdultsWithSameSplitByDBH, 0.5, NoiseRemovalBalance.Combined)
+    #                 Dataset.AdultsWithSameSplitByDBH, 0.5, NoiseRemovalBalance.Combined)
     # ModelFileID.parseFromPath(f.file)

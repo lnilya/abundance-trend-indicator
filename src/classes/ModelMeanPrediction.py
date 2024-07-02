@@ -10,7 +10,7 @@ from src.classes.FlatMapData import FlatMapData
 from src.classes.Serializable import Serializable
 from src.classes.TrainedModel import TrainedModel
 import paths as PATHS
-from src.classes.Enums import ClassCombinationMethod
+from src.classes.Enums import Dataset
 from src.classes.VariableList import VariableList
 
 

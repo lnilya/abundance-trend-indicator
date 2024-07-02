@@ -2,7 +2,7 @@ from typing import Literal, Optional, Union
 
 from GlobalParams import GlobalParams
 from PathBase import *
-from src.classes.Enums import ClassCombinationMethod, ClassificationProblem, ModelType, NoiseRemovalBalance
+from src.classes.Enums import Dataset, ClassificationProblem, ModelType, NoiseRemovalBalance
 from src.classes.VariableList import VariableList
 
 """
@@ -31,7 +31,7 @@ class Raw:
 
 class Occ:
     # Merged full dataset
-    Combined: str = "_data/_input/Occurences.csv"
+    Combined: str = "_data/_input/Occurrences.csv"
 
 
 class PlotInfo:
@@ -55,8 +55,8 @@ class Shifts:
 
     allPlotsByMethod =f'_data/_trainingdata/Migrations.csv'
     @staticmethod
-    def allPlotsCombined(by: Union[str, ClassCombinationMethod]) -> str:
-        if isinstance(by, ClassCombinationMethod):
+    def allPlotsCombined(by: Union[str, Dataset]) -> str:
+        if isinstance(by, Dataset):
             by = by.value
 
         return f'_data/_trainingdata/TrainingData_{by}.csv'
@@ -65,7 +65,7 @@ class Shifts:
 class Noise:
 
     @staticmethod
-    def noiseLabels(comb:ClassCombinationMethod, vars:VariableList)->str:
+    def noiseLabels(comb:Dataset, vars:VariableList)->str:
         return '_data/_trainingdata/NoiseScores_%s_%s.csv'%(comb.value,vars.name)
 
 
@@ -77,18 +77,12 @@ class Results:
     predictionsMeanFolder = '_data/_predictions/_ati/'
     predictionsFolder = '_data/_predictions/_ati_yearly/'
 
-    predictionImgsFolder = DATAFOLDER + '_v3/_Analysis/PredictionImgs/'
-    permutationImportanceFolder = DATAFOLDER + '_v3/_Analysis/PermutationImportance/'
-    permutationImportance = DATAFOLDER + '_v3/_Analysis/PermutationImportance/PermutationImportance.csv'
-    gradientAnalysis = DATAFOLDER + '_v3/_Analysis/EFTIGradientAnalysis.csv'
-
-
     @staticmethod
-    def eftiCorrAnalysis(comb:ClassCombinationMethod, name:str = "EFTICorrelationAnalysis"):
+    def eftiCorrAnalysis(comb:Dataset, name:str = "EFTICorrelationAnalysis"):
         s = DATAFOLDER + '_v3/_Analysis/%s_%s.csv'
         return s%(name,comb.value)
     @staticmethod
-    def giniFeatureImportances(comb:ClassCombinationMethod, name:str = "GiniFI"):
+    def giniFeatureImportances(comb:Dataset, name:str = "GiniFI"):
         s = DATAFOLDER + '_v3/_Analysis/%s_%s.csv'
         return s%(name,comb.value)
 
