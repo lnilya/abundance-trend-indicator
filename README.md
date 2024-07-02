@@ -83,7 +83,7 @@ The occurrence data is synthetically generated for an "Elevation Species" that s
 
 The resulting elevational distribution of the synthetic species is shown in the figure below.
 
-![Elevation Species](./SyntheticDistribution.jpg)
+![Elevation Species](_Media/SyntheticDistribution.jpg "Distribution")
 
 
 
