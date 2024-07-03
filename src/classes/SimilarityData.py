@@ -119,7 +119,7 @@ class SimilarityData(FlatMapData):
 
         return occQ95,trQ95,f2
     def _loadOccData(self, subsample:int):
-        trData = pd.read_csv(PATHS.Shifts.allPlotsCombined(self._fileID["ClassCombinationMethod"]),
+        trData = pd.read_csv(PATHS.Shifts.allPlotsCombined(self._fileID["Dataset"]),
                            usecols=["Species", "Type", "PlotID", "mapX", "mapY"])
         trData = trData[trData.Species == self._fileID["Species"]]
 
@@ -145,13 +145,11 @@ class SimilarityData(FlatMapData):
 
         img = self.displayImg({"Sim":self.getDataAs2DArray(["Similarity"])[:,:,0]}, False, subsample, True)
 
-
-
         #Show the plots
         trData, occ = self._loadOccData(subsample)
 
         #1. Display the dist histogram
-        occQ95,trQ95,_ = self.displayDistHistograms(img, occ, trData)
+        occQ95,trQ95,_ = self.displayDistHistograms(img, occ, trData, returnOnly=True)
 
         #Calculate the threshold image (2 colors for above and below the 100% of occurrence data)
         imgThreshold = img.copy()
@@ -166,10 +164,18 @@ class SimilarityData(FlatMapData):
 
         f = px.imshow(img, color_continuous_scale=px.colors.sequential.thermal)
 
-        f.add_scatter(x=occ["mapX"], y=occ["mapY"], mode="markers", marker=dict(size=4, color="lightgreen", symbol="cross"), hovertext=occ["PlotID"])
-        f.add_scatter(x=trData["mapX"], y=trData["mapY"], mode="markers", marker=dict(size=3, color="red"), hovertext=trData["PlotID"])
+        f.add_scatter(name="Occurrence", x=occ["mapX"], y=occ["mapY"], mode="markers", marker=dict(size=4, color="lightgreen", symbol="cross"), hovertext=occ["PlotID"])
+        f.add_scatter(name="Training Data", x=trData["mapX"], y=trData["mapY"], mode="markers", marker=dict(size=3, color="red"), hovertext=trData["PlotID"])
         f.update_layout(title="Similarity Surface with %s"%self._fileID["Species"])
+        #Set position of legend to be top left corner
+        f.update_layout(legend=dict(x=0.05, y=0.99))
 
+        #do not display axes
+        f.update_xaxes(showticklabels=False)
+
+        # Add annotation on right half
+        f.add_annotation(x=0.85, y=0.01, xref="paper", yref="paper", text=f"Yellow areas are too dissimalar from the training set and will be excluded.", showarrow=False)
+        f.add_annotation(x=0.05, y=0.01, xref="paper", yref="paper", text=f"Distance of environmental variables to the training set", showarrow=False)
 
         f.show()
 

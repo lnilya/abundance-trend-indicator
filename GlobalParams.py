@@ -7,7 +7,6 @@ class GlobalParams:
     """Global parameters for the entire project. Change anything here and it might have influence at various locations"""
     maxYear = 2020
     minYear = 1969
-    # minYear = 1966
     yearRange = (minYear, maxYear)
     parallelProcesses = 8 #The number of parallel processes to use for the entire project. Should be ~the number of your CPUs
     minObservationsTotal = 100 #A species must have at least this many observations to be included in the analysis
