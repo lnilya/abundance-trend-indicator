@@ -119,7 +119,7 @@ class FlatMapData(Serializable):
 
         f.show()
 
-    def plotData(self, normalized: bool = True, featureSubset:list[str] = None, subsample:int = 1, mask:np.ndarray = None, **layoutArgs):
+    def plotData(self, normalized: bool = True, featureSubset:list[str] = None, subsample:int = 1, mask:np.ndarray = None, returnOnly:bool = False, **layoutArgs):
         if featureSubset is None:
             featureSubset = self._featureNames
 
@@ -129,7 +129,8 @@ class FlatMapData(Serializable):
                 img[~mask] = np.nan
                 data[d] = img
 
-        self.displayImg(data, normalized, subsample,False, **layoutArgs)
+        f = self.displayImg(data, normalized, subsample,returnOnly, **layoutArgs)
+        return f
     def getImage(self, normalized: bool = True, featureSubset:list[str] = None, subsample:int = 1):
         if featureSubset is None:
             featureSubset = self._featureNames

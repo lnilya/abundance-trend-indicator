@@ -194,12 +194,15 @@ To see the results for the two synthetic species that shift their range up in el
 The result is the ATI prediction for the two species across the entire study area and period and the correlation between ATI values and the respective environmental variable.
 
 Areas above 0.5 indicate an increase in abundance, and the two synthetic species increase their abundance at higher altitudes (see especially the mountain range on the South Island) and in areas of high precipitation (see the South Island's rainy west coast).
+
 ![ATI Increase](_Media/ATI Results.jpg "ATI Map")
 
 A correlation of ATI values with the different environmental variables can be computed to quantify the result further. 
 Unsurprisingly, the highest correlations with ATI for the two species come from elevation and temperature (Elevation Up Species) and various precipitation variables (Precipitation Up Species).
 
 ![ATI Correlations](_Media/ATI Correlations.jpg "ATI Correlations")
+
+Note that for a simple synthetic species, the results are quite clear. For real species, the results will be more complex and require noise reduction of the data.
 
 ### What can be evaluated?
 

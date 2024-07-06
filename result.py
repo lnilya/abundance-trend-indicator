@@ -1,4 +1,7 @@
+import pandas as pd
+
 from GlobalParams import GlobalParams
+from src.__libs.plotutil import saveAsPrint
 from src.classes.Enums import ModelType, PredictiveVariableSet, ClassificationProblem, Dataset, NoiseRemovalBalance
 from src.classes.FileIDClasses import ModelMeanPredictionFileID, ModelFileID, SimilarityDataFileID, StackedDataFileID
 from src.classes.FlatMapData import FlatMapData
@@ -88,11 +91,38 @@ def getCorrelation(_species:str, _dataset:Dataset, _vars:VariableList, _cp:Class
     for i in range(predData.shape[1]):
         corrs.append(np.corrcoef(efti1D, predData[:, i])[0, 1])
 
-
-    corrs = dict(zip(_vars.list, corrs))
+    # rename the keys
+    varNames = [names.get(v,v) for v in _vars.list]
+    corrs = pd.DataFrame({'Species':_species,
+                          'Model':_model.value,
+                          'Variable': varNames,
+                          'Correlation': corrs,
+                          'ClassCombinationMethod':_dataset.value,
+                          'NoiseReduction':_nr, 'NoiseReductionBalance':_nrb.value, 'Problem':_cp.value, 'SimRangeCutoff':_simRangeCutoff})
+    # corrs = dict(zip(_vars.list, corrs))
 
     return corrs
 
+def showEnvironmentalConditions(vars:list[str], _years):
+    data = np.ndarray((1476,1003,len(vars),len(_years)))
+    nanmask = None
+
+    for e,y in enumerate(_years):
+        sdid = StackedDataFileID(y, PredictiveVariableSet.Full)
+        sd = StackedData.load(sdid.file)
+
+        data[:,:,:,e] = sd.getDataAs2DArray(vars)
+
+    datamean = np.mean(data,axis=3)
+
+    for i,v in enumerate(vars):
+        f = px.imshow(datamean[:,:,i], color_continuous_scale=px.colors.sequential.Turbo, title=f"{v}")
+        # f = px.imshow(fullImg,color_continuous_scale=px.colors.sequential.RdBu_r, title=f"ATI prediction for {s}")
+        f.update_xaxes(visible=False)
+        f.update_yaxes(visible=False)
+        f = saveAsPrint(f"Fig_SynthRes_{v}.svg",f, w="70%")
+        f.show()
+    k = 0
 
 def run(_species):
     _comb = Dataset.AdultsOnly
@@ -103,32 +133,38 @@ def run(_species):
     _nrb = NoiseRemovalBalance.Equal
     _years = list(range(GlobalParams.minYear, GlobalParams.maxYear-1))
 
-    mid = ModelFileID(_species, _model, _vars, _cp, _comb, 0, _nrb)
-    model = TrainedModel.load(mid.file)
-    print(f"Loaded Model {_model.value} for {_species}. Test score: {model.testScore}")
 
+    allCorrs = None
+    for s in _species:
+        mid = ModelFileID(s, _model, _vars, _cp, _comb, 0, _nrb)
+        model = TrainedModel.load(mid.file)
+        print(f"Loaded Model {_model.value} for {s}. Test score: {model.testScore}")
+        corrs = getCorrelation(s, _comb,_vars,_cp,_model,_nr,_nrb,_years.copy())
+        if allCorrs is None:
+            allCorrs = corrs
+        else:
+            allCorrs = pd.concat([allCorrs, corrs], ignore_index=True)
 
-    corrs = getCorrelation(_species, _comb,_vars,_cp,_model,_nr,_nrb,_years)
+        mmpf = ModelMeanPredictionFileID([GlobalParams.minYear, GlobalParams.maxYear-1], mid)
+        simf = SimilarityDataFileID.initFromPrediction(mmpf, GlobalParams.similarity_metric, GlobalParams.similarity_k)
+        sim = SimilarityData.load(simf.file)
+        mmp = ModelMeanPrediction.load(mmpf.file)
+        sim.plotData()
+        mmp.plotData()
+        # fullImg = mmp.plotData(returnOnly=True)
+        # f = px.imshow(fullImg,color_continuous_scale=px.colors.sequential.RdBu_r, title=f"ATI prediction for {s}")
+        # f.update_xaxes(visible=False)
+        # f.update_yaxes(visible=False)
+        # f = saveAsPrint("Fig_SynthRes_Result.svg",f, w="70%")
+        # f.show()
 
-    #rename the keys
-    corrs = {names.get(k,k):v for k,v in corrs.items()}
-
-    #plot as bar
-    px.bar(x=corrs.keys(), y=corrs.values(), title=f"Correlation between ATI and Environmental Variables for {_species}").show()
-
-    mmpf = ModelMeanPredictionFileID(_years, mid)
-    simf = SimilarityDataFileID.initFromPrediction(mmpf,  GlobalParams.similarity_metric, GlobalParams.similarity_k)
-    sim = SimilarityData.load(simf.file)
-    mmp = ModelMeanPrediction.load(mmpf.file)
-    # sim.plotData()
-    mmp.plotData()
-
-    #compute correlation between the ATI values and environmental variables
-
-
-    pass
-
+    #Show the ATI correlations
+    f = px.bar(allCorrs, x="Variable", y="Correlation", color="Species", title=f"Correlation between ATI and Environmental Variables", barmode="group")
+    f.update_yaxes(title_text=f"Correlation {_species}")
+    # f = saveAsPrint("Fig_SynthRes_Corr.svg",f, w="118%")
+    f.show()
 
 if __name__ == "__main__":
-    run("Precipitation Up Species")
-    run("Elevation Up Species")
+    #BIO12 is the variable for total annual precipitation
+    showEnvironmentalConditions(["Elevation","BIOEnd12"],range(GlobalParams.minYear, GlobalParams.maxYear-1))
+    run(["Elevation Up Species","Precipitation Up Species"])
