@@ -29,8 +29,8 @@ pip install -r requirements.txt
 
 5. Unpack the demo data to the _data folder in the repository
 
-Download the data from ... 
-Unpack to _data folder inside the repository
+Download the data from [Google Drive](https://drive.google.com/file/d/1G7OrZFA-FoyEy-MOAzgt9SKMSZOFuPnC/view?usp=sharing)
+Unpack to _data folder inside the repository. (Make sure you **do not** place the unzipped _data folder inside another _data folder)
 
 ## Input Data
 
