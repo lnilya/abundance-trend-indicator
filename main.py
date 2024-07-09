@@ -22,16 +22,16 @@ def run():
     _datasets = [Dataset.AdultsOnly] #Datasets to train on
     _varsets = [PredictiveVariableSet.Full] #Variable sets to train on
     _models = [ModelType.GLM] #Models to train
-    _noiseReduction = [0,0.1] # Noise reduction to train on, each will produce an individual model with its own training set.
+    _noiseReduction = [0] # Noise reduction to train on, each will produce an individual model with its own training set.
+    _overwritePlotProps = False #If True will overwrite existing files
     _overwrite = True #If True will overwrite existing files
     _speciesSubset = ["Elevation Up Species","Precipitation Up Species"]
 
-    if False:
-        #Check GlobalParams.py for specific single parameters to be set (e.g. year period)
-        #Step 1. Read the predictor variables at the plot coordinates and add them to the PlotInfo csv
-        extractGeoLayers(_overwrite)
-        extractClimateLayers(_overwrite)
-        extractClimateLayersLinAppx(_overwrite)
+    #Check GlobalParams.py for specific single parameters to be set (e.g. year period)
+    #Step 1. Read the predictor variables at the plot coordinates and add them to the PlotInfo csv
+    extractGeoLayers(_overwritePlotProps)
+    extractClimateLayers(_overwritePlotProps)
+    extractClimateLayersLinAppx(_overwritePlotProps)
 
     #Step 2. Identify the remeasured plots and create training data
     identifyRemeasuredPlots(_overwrite)
@@ -46,8 +46,8 @@ def run():
     training.trainClassifiers(_overwrite,_models,_varsets,_datasets,_noiseReduction, _speciesSubset)
 
     #Step 5. Extract the variables and prepare them for prediction inside a stacked data object for each year
-    # for v in _varsets:
-    #     extractPredictionData(_overwrite, GlobalParams.minYear, GlobalParams.maxYear, v)
+    for v in _varsets:
+        extractPredictionData(_overwrite, GlobalParams.minYear, GlobalParams.maxYear, v)
 
     #Step 6. Calculatae the similarity between the training data and the entire space to be predicted
     for (vs,ds) in product(_varsets,_datasets):

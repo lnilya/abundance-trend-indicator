@@ -23,6 +23,10 @@ class Cache:
     @staticmethod
     def toPickle(filename:str)->str:
         return REPOFOLDER + '_plots/%s.pickle'%filename
+class Virtual:
+    PlotDistribution = f"_data/NZPlotDistribution.pickle"
+    VirtualPlotInfoWithProps = f"_data/_virtual/VirtualPlotInfoWithProps.csv"
+
 class Raw:
 
     Predictors = f"_data/_input/_predictor_variables/"

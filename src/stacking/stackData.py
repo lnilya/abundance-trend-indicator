@@ -46,7 +46,7 @@ def _readClimateVariables(vars:VariableList, year:int, nanvalue = (0,0)):
 def _readGeoVariables(vars:VariableList, nanvalue = (0,0)):
     """
     :param vars: The vari
-    :param nanvalue: GeoTiffs can load nanvalues as different values. It is usually a value like -3.4028235e+38 but can be something different. These MUST be replaced with NaNs during extraction.
+    :param nanvalue: GeoTiffs can load nanvalues as different values. It is usually a value like -3.4028235e+38  but can be something different. These MUST be replaced with NaNs during extraction.
     To replace all of these "nan-like" values there are two options: Provide an (x,y) tuple where you always expect a nan value of the geotiffs (for example the coordinates of a lake),
     or provide an actual value (e.g. -3.4028235e+38).
     :return:

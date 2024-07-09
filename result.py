@@ -124,7 +124,7 @@ def showEnvironmentalConditions(vars:list[str], _years):
         f.show()
     k = 0
 
-def run(_species):
+def run(_species, exportSVGFiles:bool = False):
     _comb = Dataset.AdultsOnly
     _vars = PredictiveVariableSet.Full
     _cp = ClassificationProblem.IncDec
@@ -149,22 +149,25 @@ def run(_species):
         simf = SimilarityDataFileID.initFromPrediction(mmpf, GlobalParams.similarity_metric, GlobalParams.similarity_k)
         sim = SimilarityData.load(simf.file)
         mmp = ModelMeanPrediction.load(mmpf.file)
-        sim.plotData()
-        mmp.plotData()
-        # fullImg = mmp.plotData(returnOnly=True)
-        # f = px.imshow(fullImg,color_continuous_scale=px.colors.sequential.RdBu_r, title=f"ATI prediction for {s}")
-        # f.update_xaxes(visible=False)
-        # f.update_yaxes(visible=False)
-        # f = saveAsPrint("Fig_SynthRes_Result.svg",f, w="70%")
-        # f.show()
+        if not exportSVGFiles:
+            sim.plotData()
+            mmp.plotData()
+        else:
+            fullImg = mmp.plotData(returnOnly=True)
+            f = px.imshow(fullImg,color_continuous_scale=px.colors.sequential.RdBu_r, title=f"ATI prediction for {s}")
+            f.update_xaxes(visible=False)
+            f.update_yaxes(visible=False)
+            f = saveAsPrint(f"Fig_SynthRes_{s}.svg",f, w="70%")
+            f.show()
 
     #Show the ATI correlations
     f = px.bar(allCorrs, x="Variable", y="Correlation", color="Species", title=f"Correlation between ATI and Environmental Variables", barmode="group")
     f.update_yaxes(title_text=f"Correlation {_species}")
-    # f = saveAsPrint("Fig_SynthRes_Corr.svg",f, w="118%")
+    if exportSVGFiles:
+        f = saveAsPrint("Fig_SynthRes_Corr.svg",f, w="118%", noLegend=True)
     f.show()
 
 if __name__ == "__main__":
     #BIO12 is the variable for total annual precipitation
-    showEnvironmentalConditions(["Elevation","BIOEnd12"],range(GlobalParams.minYear, GlobalParams.maxYear-1))
-    run(["Elevation Up Species","Precipitation Up Species"])
+    # showEnvironmentalConditions(["Elevation","BIOEnd12"],range(GlobalParams.minYear, GlobalParams.maxYear-1))
+    run(["Elevation Up Species","Precipitation Up Species"],True)
