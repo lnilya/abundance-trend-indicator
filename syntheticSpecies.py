@@ -9,9 +9,11 @@ import plotly.graph_objects as go
 from tqdm import tqdm
 
 import paths as PATHS
+from GlobalParams import GlobalParams
 from src.__libs import pyutil
 from src.__libs.plotutil import PlotlyGraph, saveAsPrint
 from src.__libs.plotutil.PlotlyGraph import PlotlyGraph
+from src.__libs.pyutil import termutil
 from src.dataprocessing.geolayers import extractGeoLayers, extractClimateLayers, extractClimateLayersLinAppx
 import os
 import scipy.stats as stats
@@ -22,6 +24,7 @@ def _writeSpeciesOccurenceToCSV(df:pd.DataFrame, speciesName:str, append:bool = 
     df["Total Diameter"] = 0
     df["Species"] = speciesName
     df.set_index(["PlotID","Species","ObservationID"],inplace=True)
+    df = df.sort_index()
     allPIDs = df.groupby("PlotID")
     for pid, gr in allPIDs:
         #gr will contain two observations
@@ -67,7 +70,7 @@ def _drawFromDist(probDensity, values, setToDrawFrom, numDraws):
     return setToDrawFrom.index[sampleIndices]
 
 
-def generateVirtualSpecies(_gradient:str = "Elevation", shiftInStd:float = 0.5, widthInStd:float = 0.3, numOcc = 700, speciesName:str = None, plotResults:bool = True, appendResults:bool = True):
+def generateVirtualSpecies(_gradient:str = "Elevation", shiftInStd:float = 0.1, widthInStd:float = 0.3, numOcc = 700, speciesName:str = None, plotResults:bool = True, appendResults:bool = True, plotParams:dict = None):
     """
     Will generate occurrences for virtual species moving up a given gradient. Movement happens around the mean by providing a distance in standard deviations across all plots.
     :param _gradient: The variable along which species will move
@@ -77,13 +80,15 @@ def generateVirtualSpecies(_gradient:str = "Elevation", shiftInStd:float = 0.5, 
     :param speciesName: Name of species to use in the CSV file.
     :return:
     """
+    
+    termutil.chapPrint("Generating a synthetic species moving along the gradient %s by %.2f standard deviations" % (_gradient,shiftInStd))
     piS = pd.read_csv(PATHS.Virtual.VirtualPlotInfoWithProps)
 
     # get the distirbution along the gradient and plot it
     allVals = piS[_gradient].to_numpy()
 
     grRange = np.linspace(piS[_gradient].min(), piS[_gradient].max(), 100)
-    kde = stats.kde.gaussian_kde(piS[_gradient].to_numpy())
+    kde = stats.gaussian_kde(piS[_gradient].to_numpy())
     gradientDist = kde(grRange)
     gradientDist /= gradientDist.max()
 
@@ -109,11 +114,18 @@ def generateVirtualSpecies(_gradient:str = "Elevation", shiftInStd:float = 0.5, 
     piS.loc[afterPresent,"NumIndividuals"] = 1
 
     #Do a KDE of the actual presence probability
-    kdeBef = stats.kde.gaussian_kde(piS[(piS.ObservationID > 0) & (piS.NumIndividuals > 0) ][_gradient].to_numpy())
-    kdeAfter = stats.kde.gaussian_kde(piS[(piS.ObservationID < 0) & (piS.NumIndividuals > 0) ][_gradient].to_numpy())
+    kdeBef = stats.gaussian_kde(piS[(piS.ObservationID > 0) & (piS.NumIndividuals > 0) ][_gradient].to_numpy())
+    kdeAfter = stats.gaussian_kde(piS[(piS.ObservationID < 0) & (piS.NumIndividuals > 0) ][_gradient].to_numpy())
 
     kdeBef = kdeBef(grRange)
     kdeAfter = kdeAfter(grRange)
+    
+    # compute the means of the kdes
+    meanBef = np.sum(kdeBef * grRange) / np.sum(kdeBef)
+    meanAfter = np.sum(kdeAfter * grRange) / np.sum(kdeAfter)
+    
+    print(f"    Species shifted along {_gradient} from: {meanBef:.2f} to: {meanAfter:.2f}. Difference: {meanAfter - meanBef:.2f}")
+
 
     kdeAfter /= kdeAfter.max()
     kdeBef /= kdeBef.max()
@@ -124,6 +136,7 @@ def generateVirtualSpecies(_gradient:str = "Elevation", shiftInStd:float = 0.5, 
     _writeSpeciesOccurenceToCSV(piS, speciesName,appendResults)
 
     if plotResults:
+        plotParams = plotParams if plotParams is not None else {}
         f = go.Figure()
         f.add_trace(go.Scatter(x=grRange, y=gradientDist, mode="lines", name=_gradient + " Distribution (all plots)", line=dict(width=1, color="black")))
         f.add_trace(go.Scatter(x=grRange, y=presenceProbBefore, mode="lines", name="Presence probability 2000", line=dict(dash="dot", width=1, color="red") ))
@@ -131,18 +144,25 @@ def generateVirtualSpecies(_gradient:str = "Elevation", shiftInStd:float = 0.5, 
         f.add_trace(go.Scatter(x=grRange, y=kdeBef, mode="lines", name="Distribution of species 2000", line=dict(color="red")))
         f.add_trace(go.Scatter(x=grRange, y=kdeAfter, mode="lines", name="Distribution of species 2019", line=dict(color="blue")))
         f.update_layout(title=_gradient + " distribution of a synthetic species", xaxis_title=_gradient, yaxis_title="Density")
+        #change xrange
+        f.update_xaxes(**plotParams.get("xaxis",{}))
+        f.update_yaxes(**plotParams.get("yaxis",{}))
+        f.update_layout(**plotParams.get("layout",{}))
         # imgPath = lambda s: PATHS.plotFolderFigures + "Fig_SynthDist_%s.svg" % s
-        f = saveAsPrint(f"Fig_SynthDist_{speciesName}.svg",f,w="55%", h="70%", noLegend=True)
+        # f = saveAsPrint(f"Fig_SynthDist_{speciesName}.svg",f,w="26%", h="40%", noLegend=True)
+        f = saveAsPrint(f"Fig_SynthDist_{speciesName}.svg",f,w=450, h=440, noLegend=True)
         f.show()
     k = 0
 
-def addClimateDataToVirtualPlotInfo():
+def addClimateDataToVirtualPlotInfo(_overwrite:bool = False):
     """
     Will extract the climate data for each plot and save it, since this will be necessary to generate the virtual plot info.
     This step is part of the data generation process in main.py as well. If the species are generated here, these steps in main.py can be skipped.
     Set the _overwritePlotProps to False if you want to skip this step in main.py
     """
-    _overwrite = False
+    
+    termutil.chapPrint("Adding (real) climate data to virtual plots.")
+    
     extractGeoLayers(_overwrite)
     extractClimateLayers(_overwrite)
     extractClimateLayersLinAppx(_overwrite)
@@ -160,7 +180,9 @@ def addClimateDataToVirtualPlotInfo():
         r = climatePlots[(climatePlots.PlotID == pid) & (climatePlots.Year == y) ]
         r = r.loc[:, climVars]
         #sort the columns of r so they are in the same order as columns
-
+        if len(r) == 0:
+            print(f"Warning: No climate data found for PlotID {pid} in year {y}. Check if the climate data is available for this year.")
+            continue
         climVals = r.iloc[0, :].to_list()
 
         # add to the shifts as columns to the dataframe
@@ -180,7 +202,7 @@ def addClimateDataToVirtualPlotInfo():
 
 
 
-def generateRandomPlots(numPlots: int, incFactor: int = 2, showPlots: bool = False):
+def generateRandomPlots(numPlots: int, incFactor: int = 2, showPlots: bool = False, overwrite: bool = False):
     """
     Will generate a number of random plot locations based on a KDE distribution.
     Then will create two sets of observations for 2000 and 2019 with the same plot locations.
@@ -190,6 +212,14 @@ def generateRandomPlots(numPlots: int, incFactor: int = 2, showPlots: bool = Fal
     :param showPlots: If true will display a plot of the KDE, and the generated plots on the map
     :return: None, output written directly to PlotInfo in the _input directory.
     """
+    
+    termutil.chapPrint("Generating random plots for synthetic species")
+    
+    if os.path.exists(PATHS.PlotInfo.NoProps) and not overwrite:
+        termutil.successPrint("     Skipped generating random plots. File exists.")
+        return
+    
+    
     # Read a geotiff file for dimensions and as a mask
     img = PATHS.Raw.Predictors + "pH.tif"
     img = rasterio.open(img)
@@ -230,7 +260,7 @@ def generateRandomPlots(numPlots: int, incFactor: int = 2, showPlots: bool = Fal
     piS = piS.loc[mask[piS.mapY, piS.mapX]]
 
     if len(piS) < numPlots:
-        print("Not enough plots on the map, trying again.")
+        print("     Not enough plots on the map, trying again.")
         return generateRandomPlots(numPlots, incFactor * 2)
 
     # reduce to the desired number of plots
@@ -250,20 +280,25 @@ def generateRandomPlots(numPlots: int, incFactor: int = 2, showPlots: bool = Fal
     #PlotID,ObservationID,Year,mapX,mapY
     piS["PlotID"] = range(1, len(piS) + 1)
     piS["ObservationID"] = range(1, len(piS) + 1)
-    piS["Year"] = 2000
+    piS["Year"] = GlobalParams.minYear
     #duplicate wth negative IDs for year 2019
     piS2 = piS.copy()
-    piS2["Year"] = 2019
+    piS2["Year"] = GlobalParams.maxYear - 1
     piS2["ObservationID"] = -piS2["ObservationID"]
     piS = pd.concat([piS, piS2])
 
     pyutil.writePandasToCSV(piS, PATHS.PlotInfo.NoProps, "Generated Syntehtic Plots")
 
 if __name__ == "__main__":
+    overwrite = False
+    showPlots = False
     #Generate random plots - this wll overwrite the PlotInfo.csv file in the _data/_input folder
-    # generateRandomPlots(2000, showPlots=True)
+    # generateRandomPlots(2000, showPlots=showPlots,overwrite=overwrite)
+    
     #Add climate data to the virtual plot info needed to generate the virtual species
-    # addClimateDataToVirtualPlotInfo()
-    #Generate the species occurrences, will overwrite the Occurrence.csv file in the _data/_input folder
-    generateVirtualSpecies( "Elevation", numOcc=1000, speciesName="Elevation Up Species", appendResults=False)
-    generateVirtualSpecies("BIOEnd12", numOcc=1000, speciesName="Precipitation Up Species")
+    # addClimateDataToVirtualPlotInfo(overwrite)
+    
+    # #Generate the species occurrences, will overwrite the Occurrence.csv file in the _data/_input folder
+    generateVirtualSpecies( "Elevation",shiftInStd=0.08,widthInStd=0.2, numOcc=1000, speciesName="Elevation Up Species", plotResults=showPlots, appendResults=False, plotParams={"xaxis": {"range": [0, 1350]}})
+    generateVirtualSpecies("BIOEnd12",shiftInStd=0.08,widthInStd=0.2, numOcc=1000, speciesName="Precipitation Up Species", plotResults=showPlots, plotParams={"xaxis": {"range": [0, 4500]}})
+    generateVirtualSpecies("Latitude", shiftInStd=0.25,widthInStd=0.2, numOcc=1000, speciesName="Latitude Up Species", plotResults=showPlots, plotParams={"xaxis": {"range": [-47, -37]}})

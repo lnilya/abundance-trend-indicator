@@ -2,6 +2,7 @@ from typing import Union
 
 import numpy as np
 
+from src.__libs import plotutil
 from src.classes.Enums import PredictiveVariableSet, ClassificationProblem, Dataset
 from src.classes.FileIDClasses import SimilarityDataFileID
 from src.classes.FlatMapData import FlatMapData
@@ -181,7 +182,18 @@ class SimilarityData(FlatMapData):
 
         #show the distribution of distances in training and occurrence data
 
-    def getSurfaceAndTrainingData(self, showOcc:bool, showTrain:bool, subsample = 1, quantilleMax = 1):
+    def plotMaskImage(self, saveImgPath:str = None):
+        f = self.getSurfaceAndTrainingData(True, False, quantilleMax=0.7)
+        f.data[0].update(zmin=0, zmax=150)
+        f.data[-1].update(marker_color="coral", marker_symbol="circle", marker_size=3)
+        f.update_layout(height=800, width=800, template='simple_white')
+        if saveImgPath is not None:
+            f.write_image(saveImgPath)
+            f = plotutil.saveAsPrint(saveImgPath, f, xaxis_visible=False, yaxis_visible=False,
+                            plot_bgcolor='rgba(193,222,247,1)')
+        return f
+
+    def getSurfaceAndTrainingData(self, showOcc:bool, showTrain:bool, subsample = 1, quantilleMax = 1.0):
         # Show the plots
         img = self.displayImg({"Sim": self.getDataAs2DArray(["Similarity"])[:, :, 0]}, False, subsample, True)
         trData, occ = self._loadOccData(subsample)

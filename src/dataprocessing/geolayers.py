@@ -157,6 +157,27 @@ def checkForInvalidNZENVDSValues():
 
     return res
 
+def showLayer(layerName:str):
+    if not layerName.endswith(".tif"):
+        layerName = layerName + ".tif"
+    path = PATHS.Raw.Predictors + layerName
+    with rasterio.open(path) as src:
+        rawData = src.read(1)
+    
+    import plotly.express as px
+    
+    f = px.imshow(rawData, color_continuous_scale=px.colors.sequential.RdBu_r, template='simple_white',
+                  **args)
+    f.update_xaxes(visible=False)
+    f.update_yaxes(visible=False)
+    f.update_layout(plot_bgcolor='rgba(193,222,247,1)')
+    if outputPath is not None:
+        # hide legend
+        f.update(layout_coloraxis_showscale=False, layout_margin=dict(t=0, b=0, l=0, r=0))
+        # set padding
+        f.write_image(outputPath)
+    return f
+    
 if __name__ == '__main__':
 
     extractGeoLayers()

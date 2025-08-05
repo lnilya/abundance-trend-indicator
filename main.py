@@ -1,9 +1,13 @@
 from itertools import product
 
 import pandas as pd
+import rasterio
 
 from GlobalParams import GlobalParams
-from src.classes.Enums import Dataset, ClassificationProblem, PredictiveVariableSet, ModelType
+from src.classes.Enums import Dataset, ClassificationProblem, PredictiveVariableSet, ModelType, NoiseRemovalBalance
+from src.classes.FileIDClasses import SimilarityDataFileID, ModelMeanPredictionFileID, ModelFileID
+from src.classes.ModelMeanPrediction import ModelMeanPrediction
+from src.classes.SimilarityData import SimilarityData
 
 from src.dataprocessing.geolayers import extractClimateLayers, extractGeoLayers, extractClimateLayersLinAppx
 from src.datautil import datautil
@@ -15,6 +19,7 @@ from src.shifts.shiftsAndClim import createTrainingData
 from src.stacking.stackData import extractPredictionData
 from src.predictions.similarity import computeSimilarity
 import paths as PATHS
+from plotly import express as px
 
 def run():
 
@@ -25,7 +30,8 @@ def run():
     _noiseReduction = [0] # Noise reduction to train on, each will produce an individual model with its own training set.
     _overwritePlotProps = False #If True will overwrite existing files
     _overwrite = True #If True will overwrite existing files
-    _speciesSubset = ["Elevation Up Species","Precipitation Up Species"]
+    # _speciesSubset = ["Elevation Up Species","Precipitation Up Species","Latitude Up Species"]
+    _speciesSubset = ["Precipitation Up Species"]
 
     #Check GlobalParams.py for specific single parameters to be set (e.g. year period)
     #Step 1. Read the predictor variables at the plot coordinates and add them to the PlotInfo csv
@@ -56,7 +62,9 @@ def run():
     #Step 7. Use the models to make predictions for the entire space
     computeATIPredictions(_overwrite,_models, _varsets,_noiseReduction,_datasets,speciesSubset=_speciesSubset)
 
-
-
 if __name__ == '__main__':
     run()
+    #after running go to result.py to show the results for synthetic speices
+    # showResults()
+    
+    

@@ -12,8 +12,7 @@ from src.classes.TrainedModel import TrainedModel
 import paths as PATHS
 from src.classes.Enums import Dataset
 from src.classes.VariableList import VariableList
-
-
+import plotly.express as px
 class ModelMeanPrediction(FlatMapData):
     """Stores Tru/False predictions by year"""
 
@@ -34,6 +33,19 @@ class ModelMeanPrediction(FlatMapData):
         if mask2D is not None:
             r[~mask2D] = np.nan
         return r
+    
+    def showATIPrediction(self, outputPath=None, **args):
+        # f = px.imshow(img[_slice], color_continuous_scale=colorScale, height=800, width=800, template='simple_white', **args)
+        f = px.imshow(self.getDataAs2DArray(), color_continuous_scale=px.colors.sequential.RdBu_r,template='simple_white', **args)
+        f.update_xaxes(visible=False)
+        f.update_yaxes(visible=False)
+        f.update_layout(plot_bgcolor='rgba(193,222,247,1)')
+        if outputPath is not None:
+            # hide legend
+            f.update(layout_coloraxis_showscale=False, layout_margin=dict(t=0, b=0, l=0, r=0))
+            # set padding
+            f.write_image(outputPath)
+        return f
 
     def _getPlotTitle(self): return self._fileID["Species"]
 

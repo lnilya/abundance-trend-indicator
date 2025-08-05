@@ -169,5 +169,5 @@ def run(_species, exportSVGFiles:bool = False):
 
 if __name__ == "__main__":
     #BIO12 is the variable for total annual precipitation
-    # showEnvironmentalConditions(["Elevation","BIOEnd12"],range(GlobalParams.minYear, GlobalParams.maxYear-1))
-    run(["Elevation Up Species","Precipitation Up Species"],True)
+    # showEnvironmentalConditions(["Elevation","BIOEnd12","Latitude"],range(GlobalParams.minYear, GlobalParams.maxYear-1))
+    run(["Elevation Up Species","Precipitation Up Species","Latitude Up Species"],True)

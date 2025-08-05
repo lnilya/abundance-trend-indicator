@@ -72,11 +72,17 @@ This CSV file contains forest inventory data for all species with the columns `P
 
 The ... archive contains example data and results. Unzip it into the repository's _data folder for testing. It includes parts real and parts synthetic data for testing. 
 
-1. Site data
-The site data contains a random subset of real sites from the New Zealand Vegetation survey, but the years and ObservationID are synthetic. The only years present in the data are 2000 and 2019. The observation IDs are identical to the PlotIDs for the year 2000 and set to the negative value for 2019.
+You can generate your own synthetic data by following the steps below.
+
+1. Site data in syntheticSpecies.py
+Run the script `syntheticSpecies.py` to generate the site data. Warning: The synthetic species data will overwrite any real occurrence data you have.
+This script will generate random plots based on a probability distribution of real plots (which location we can't publish, unfortunately). It will then extract real climatic data based on the plot locations and generate synthetic occurrence data for two species that shift their range up in the desired variables.
+The strength of shift is defined in standard deviations of the total data, the time frame is set in GlobalParams.py (min and max year).
+
+When running the script will tell you by how much in absolute units the synthetic species shift their average abundance (e.g. in meters if shifting along an elevation gradients).
 2. Predictor variables
 The geo layers are taken from [NZENVDS](https://datastore.landcareresearch.co.nz/ne/dataset/nzenvds) and the climate layers are generated from [HOTRUNZ](https://essd.copernicus.org/articles/14/2817/2022/essd-14-2817-2022-discussion.html).
-These values contain accurate data.
+These values contain accurate real-world data.
 3. Occurrence data 
 The occurrence data is synthetically generated for an "Elevation Up Species" and a "Precipitation Up Species" that shift along a hypothetical elevation or precipitation gradient, respectively. It is generated using the following method: 
 - First, estimate the elevation or precipitation distributions of all plots in the site data and obtain their mean M and standard deviation S. 

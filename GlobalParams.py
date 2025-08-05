@@ -6,13 +6,13 @@ class GlobalParams:
 
     """Global parameters for the entire project. Change anything here and it might have influence at various locations"""
     maxYear = 2020
-    minYear = 1995
+    minYear = 1990
     yearRange = (minYear, maxYear)
     parallelProcesses = 8 #The number of parallel processes to use for the entire project. Should be ~the number of your CPUs
     minObservationsTotal = 100 #A species must have at least this many observations to be included in the analysis
     minObservationsPerClass = 20 #Each of the three classes (Inc,Dec,Same) should have at least that many observations
 
-    maxYearDifference = 30 #The maximum number of years between observations. Will shrink dataset but too long observations do not have an influience anymore.
+    maxYearDifference = 31 #The maximum number of years between observations. Will shrink dataset but too long observations do not have an influience anymore.
 
     testSetSize = 0.25 #Proportion of data used for testing
     testFolds = int(round(1/testSetSize)) #Proportion of data used for testing
